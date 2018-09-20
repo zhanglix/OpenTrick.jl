@@ -1,6 +1,6 @@
 module OpenTrick
 
-export opentrick
+export opentrick, unsafe_clear
 
 const tasks_pending=Dict{Task, Condition}()
 
@@ -60,4 +60,10 @@ function opentrick(open::Function, args...; kwargs...)
     end
 end
 
+function unsafe_clear()
+    for (task, cond) in tasks_pending
+        notify(cond, InterruptException(), error=true)
+        yield()
+    end
+end
 end # module

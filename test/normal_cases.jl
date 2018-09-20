@@ -11,3 +11,13 @@ using OpenTrick
     @test !isopen(wrapper.value)
     @test length(OpenTrick.tasks_pending) == 0
 end
+
+@testset "unsafe_clear" begin
+    w1 = opentrick(open, "sometext.txt", "r")
+    w2 = opentrick(open, "sometext.txt", "r")
+    @test length(OpenTrick.tasks_pending) == 2
+    unsafe_clear();
+    @test length(OpenTrick.tasks_pending) == 0
+    @test !isopen(w1.value)
+    @test !isopen(w2.value)
+end

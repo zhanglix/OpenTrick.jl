@@ -18,6 +18,3 @@ close(io)  # you can close io manually
 wrapper = nothing; # or leave it to GC
 unsafe_clear() # or you can clear all ios opened by opentrick manually
 ```
-
-
-

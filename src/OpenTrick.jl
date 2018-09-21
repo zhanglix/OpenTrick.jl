@@ -1,25 +1,40 @@
 module OpenTrick
 
-export opentrick, unsafe_clear
+export opentrick, rawio, blockingtask, unsafe_clear
 
-const tasks_pending=Dict{Task, Condition}()
+const tasks_pending=Dict{Condition, Task}()
 
-mutable struct ValueWrapper{T}
-    value::T
+mutable struct IOWrapper{T <: IO}
+    io::T
     cond::Condition
-    function ValueWrapper(v::T, c) where T
-        obj = new{T}(v, c)
+    function IOWrapper(io::T, c) where T
+        obj = new{T}(io, c)
         finalizer(obj) do obj
             notify(obj.cond)
         end
     end
 end
 
+rawio(w::IOWrapper) = w.io
+blockingtask(w::IOWrapper) = tasks_pending[w.cond]
+
+function Base.close(w::IOWrapper)
+    close(rawio(w))
+    finalize(w)
+    yield()
+end
+
+for fname in (:read, :read!, :readline, :write, :isopen)
+    eval(quote
+        Base.$fname(w::IOWrapper, args...; kwargs...) = $fname(rawio(w), args...; kwargs...)
+    end)
+end
+
 """
 call blockreturn in other tasks like in @async block
 """
 function notifyreturn(c, x)
-    nof = ValueWrapper(x, c)
+    nof = IOWrapper(x, c)
     @debug "notifing caller..." nof
     notify(c, nof, all=false) # caller ought to be waiting for it
     nof = nothing # no longer keep reference to
@@ -34,8 +49,8 @@ function blockreturn(f::Function, args...; kwargs...)
     cond = Condition()
     task = @async begin
         try
-            @debug "push!" current_task() cond tasks_pending
-            push!(tasks_pending, current_task() => cond)
+            @debug "push!" cond current_task() tasks_pending
+            push!(tasks_pending, cond => current_task() )
             @debug "calling ..." f args kwargs
             f(cond, args...; kwargs...)
             @debug "call returned" f
@@ -44,7 +59,7 @@ function blockreturn(f::Function, args...; kwargs...)
             notify(cond, e, error=true)
         end
         @debug "delete!" current_task() tasks_pending
-        delete!(tasks_pending, current_task())
+        delete!(tasks_pending, cond)
         @debug "deleted" tasks_pending
 
     end
@@ -61,7 +76,7 @@ function opentrick(open::Function, args...; kwargs...)
 end
 
 function unsafe_clear()
-    for (task, cond) in tasks_pending
+    for (cond, task) in tasks_pending
         notify(cond, InterruptException(), error=true)
         yield()
     end

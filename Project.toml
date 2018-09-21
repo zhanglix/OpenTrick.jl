@@ -3,8 +3,11 @@ uuid = "88dfaa86-bcb0-11e8-243b-bdf2ce08c367"
 authors = ["zhangli <zhangli@joypace.com>"]
 version = "0.1.0"
 
+[deps]
+
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+WebSockets = "104b5d7c-a370-577a-8038-80a2059c5097"
 
 [targets]
-test = ["Test"]
+test = ["Test", "WebSockets"]

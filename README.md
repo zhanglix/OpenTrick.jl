@@ -10,14 +10,13 @@ using WebSockets as an example.
 using OpenTrick
 using WebSockets
 
-wrapper = opentrick(WebSockets.open, "ws://echo.websocket.org");
-write(wrapper.value, "Hello");
-@test "Hello" == String(read(wrapper.value));
+io = opentrick(WebSockets.open, "ws://echo.websocket.org");
+write(io, "Hello");
+println(String(read(io)));
 
-wrapper = nothing; # resource  will be cleaned automatically with GC
-
-unsafe_clear() # or you can clear all wrappers manually
-
+close(io)  # you can close io manually
+wrapper = nothing; # or leave it to GC
+unsafe_clear() # or you can clear all ios opened by opentrick manually
 ```
 
 

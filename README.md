@@ -5,7 +5,7 @@ There are  `open` methods which only support the `open() do io ... end` conventi
 ## Supported interfaces
 
 - opentrick, rawio, blockingtask
-- close, read, read!, readline, write, isopen, eof
+- close, read, read!, readavailable, readline, write, isopen, eof
 - unsafe_clear
 
 ## Examples

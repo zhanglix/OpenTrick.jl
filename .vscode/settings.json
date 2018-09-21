@@ -5,6 +5,7 @@
         "opentrick",
         "println",
         "rawio",
+        "readavailable",
         "readline"
     ]
 }

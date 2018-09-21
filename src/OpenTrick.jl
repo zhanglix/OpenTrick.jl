@@ -19,9 +19,14 @@ rawio(w::IOWrapper) = w.io
 blockingtask(w::IOWrapper) = tasks_pending[w.cond]
 
 function Base.close(w::IOWrapper)
-    close(rawio(w))
-    finalize(w)
-    yield()
+    try
+        close(rawio(w))
+    catch e
+        rethrow(e)
+    finally
+        finalize(w)
+        yield()
+    end
 end
 
 for fname in (:read, :read!, :readavailable, :readline, :write, :isopen, :eof)

@@ -1,6 +1,5 @@
 using Test
 using OpenTrick
-using WebSockets
 @testset "open read succeed" begin
     wrapper = opentrick(open, "sometext.txt", "r")
     @test "hello world!" == String(readline(wrapper))
@@ -27,16 +26,6 @@ end
     @test !isopen(rawio(infile))
     @test length(OpenTrick.tasks_pending) == 0
 end
-
-# @testset "websockets" begin
-# io = opentrick(WebSockets.open, "ws://echo.websocket.org");
-# write(io, "Hello");
-# @test "Hello" == String(read(io));
-# write(io, "World!");
-# @test "World!" == String(read(io));
-# close(io)  # you can close io manually
-# @test_throws ArgumentError write(io, "Failed!");
-# end
 
 @testset "unsafe_clear" begin
     w1 = opentrick(open, "sometext.txt", "r")

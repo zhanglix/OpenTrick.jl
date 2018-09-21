@@ -24,7 +24,7 @@ function Base.close(w::IOWrapper)
     yield()
 end
 
-for fname in (:read, :read!, :readline, :write, :isopen)
+for fname in (:read, :read!, :readavailable, :readline, :write, :isopen, :eof)
     eval(quote
         Base.$fname(w::IOWrapper, args...; kwargs...) = $fname(rawio(w), args...; kwargs...)
     end)

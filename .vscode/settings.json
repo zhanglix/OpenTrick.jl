@@ -1,6 +1,10 @@
 {
     "cSpell.words": [
+        "blockingtask",
+        "isopen",
         "opentrick",
-        "println"
+        "println",
+        "rawio",
+        "readline"
     ]
 }

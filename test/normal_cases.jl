@@ -1,12 +1,13 @@
 using Test
 using OpenTrick
 @testset "open read succeed" begin
-    wrapper = opentrick(open, "sometext.txt", "r")
-    @test "hello world!" == String(readline(wrapper))
+    io = opentrick(open, "sometext.txt", "r")
+    @test "hello world!" == String(readline(io))
+    @test !eof(io)
     @test length(OpenTrick.tasks_pending) == 1
     @debug "call close"
-    close(wrapper)
-    @test !isopen(wrapper)
+    close(io)
+    @test !isopen(io)
     @test length(OpenTrick.tasks_pending) == 0
 end
 
@@ -22,6 +23,7 @@ end
     @test length(OpenTrick.tasks_pending) == 0
     infile = opentrick(open, filename, "r")
     @test String(read(infile)) == outstring
+    @test eof(infile)
     close(infile)
     @test !isopen(rawio(infile))
     @test length(OpenTrick.tasks_pending) == 0

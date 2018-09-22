@@ -32,9 +32,89 @@ unsafe_clear() # or you can clear all ios opened by opentrick manually
 - isreadonly, iswritable, isreadable, isopen, eof
 - countlines, displaysize
 
+
+<a id='OpenTrick.jl-Documentation-1'></a>
+
 ## OpenTrick.jl Documentation
 
-- opentrick
-- rawio
-- blockingtask
-- unsafe_clear
+<a id='OpenTrick.opentrick' href='#OpenTrick.opentrick'>#</a>
+**`OpenTrick.opentrick`** &mdash; *Function*.
+
+
+
+```
+opentrick(openfn[, args... [; <keyword arguments>]])
+```
+
+Call `openfn` with `(handlefn, args... ,kwargs ...)` as arguments, return an `IOWrapper` instance. (NB:`handlefn` is provided by `opentrick`.)
+
+**Arguments**
+
+  * `openfn::Function` function actually called to obtain a `IO` instance. `openfn` must take a `Function(::IO)` instance as its first argument
+  * `args` optional arguments that will be passed to `openfn`
+  * `kwargs` optional keyword arguments that will be passed to `openfn`
+
+**Examples**
+
+```julia-repl
+julia> using OpenTrick
+
+julia> filename = tempname();
+
+julia> io = opentrick(open, filename, "w+");
+
+julia> write(io, "hello world!")
+12
+
+julia> seek(io, 0);
+
+julia> readline(io)
+"hello world!"
+
+```
+
+
+<a target='_blank' href='https://github.com/zhanglix/OpenTrick.jl/blob/aaa229d239668168f255f4c518a45d1c6ddc1e8a/src/OpenTrick.jl#L18-L47' class='documenter-source'>source</a><br>
+
+<a id='OpenTrick.rawio' href='#OpenTrick.rawio'>#</a>
+**`OpenTrick.rawio`** &mdash; *Function*.
+
+
+
+```
+rawio(io)
+```
+
+Return the actual `io` instance
+
+
+<a target='_blank' href='https://github.com/zhanglix/OpenTrick.jl/blob/aaa229d239668168f255f4c518a45d1c6ddc1e8a/src/OpenTrick.jl#L100-L104' class='documenter-source'>source</a><br>
+
+<a id='OpenTrick.blockingtask' href='#OpenTrick.blockingtask'>#</a>
+**`OpenTrick.blockingtask`** &mdash; *Function*.
+
+
+
+```
+blockingtask(io)
+```
+
+Return the task blocking which prevents the `handlefn` passed to `openfn` from returning
+
+
+<a target='_blank' href='https://github.com/zhanglix/OpenTrick.jl/blob/aaa229d239668168f255f4c518a45d1c6ddc1e8a/src/OpenTrick.jl#L107-L111' class='documenter-source'>source</a><br>
+
+<a id='OpenTrick.unsafe_clear' href='#OpenTrick.unsafe_clear'>#</a>
+**`OpenTrick.unsafe_clear`** &mdash; *Function*.
+
+
+
+```
+unsafe_clear()
+```
+
+Unblock all blocking tasks. All `io`s returned by `opentrick` will be closed as a consequence.
+
+
+<a target='_blank' href='https://github.com/zhanglix/OpenTrick.jl/blob/aaa229d239668168f255f4c518a45d1c6ddc1e8a/src/OpenTrick.jl#L87-L92' class='documenter-source'>source</a><br>
+

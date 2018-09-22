@@ -15,8 +15,40 @@ mutable struct IOWrapper{T <: IO}
     end
 end
 
-rawio(w::IOWrapper) = w.io
-blockingtask(w::IOWrapper) = tasks_pending[w.cond]
+"""
+    opentrick(openfn[, args..., [kwargs...]])
+
+Call `openfn` with (handlefn, args... ,kwargs ...) as arguments, return a instance of `IOWrapper`
+
+`openfn` need to take a handlefn as its first argument, like the Base.open().
+And the `handlefn` is expected to take an instance of `IO` as
+only argument.
+
+# Examples
+```jldoctest
+julia> using OpenTrick
+
+julia> filename = tempname();
+
+julia> io = opentrick(open, filename, "w+");
+
+julia> write(io, "hello world!")
+12
+
+julia> seek(io, 0);
+
+julia> readline(io)
+"hello world!"
+
+```
+"""
+function opentrick(open::Function, args...; kwargs...)
+    blockreturn() do cond
+        open(args ...; kwargs...) do stream
+            notifyreturn(cond, stream)
+        end
+    end
+end
 
 function Base.close(w::IOWrapper)
     try
@@ -29,11 +61,21 @@ function Base.close(w::IOWrapper)
     end
 end
 
-for fname in (:read, :read!, :readavailable, :readline, :write, :isopen, :eof)
+for fname in (:read, :read!, :readavailable, :readline, :write, :isopen, :eof, :seek, :skip)
     eval(quote
         Base.$fname(w::IOWrapper, args...; kwargs...) = $fname(rawio(w), args...; kwargs...)
     end)
 end
+
+function unsafe_clear()
+    for (cond, task) in tasks_pending
+        notify(cond, InterruptException(), error=true)
+        yield()
+    end
+end
+
+rawio(w::IOWrapper) = w.io
+blockingtask(w::IOWrapper) = tasks_pending[w.cond]
 
 """
 call blockreturn in other tasks like in @async block
@@ -72,18 +114,4 @@ function blockreturn(f::Function, args...; kwargs...)
     return wait(cond)
 end
 
-function opentrick(open::Function, args...; kwargs...)
-    blockreturn() do cond
-        open(args ...; kwargs...) do stream
-            notifyreturn(cond, stream)
-        end
-    end
-end
-
-function unsafe_clear()
-    for (cond, task) in tasks_pending
-        notify(cond, InterruptException(), error=true)
-        yield()
-    end
-end
 end # module

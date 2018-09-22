@@ -1,12 +1,9 @@
 # OpenTrick
 
-There are  `open` methods which only support the `open() do io ... end` conventions. This module provides a trick to enable  keeping `io` for later usage. This is convenient for interactive programming.
+- [Examples](#examples)
+- [Supported interfaces](#supported-interfaces)
 
-## Supported interfaces
-
-- opentrick, rawio, blockingtask
-- close, read, read!, readavailable, readline, write, isopen, eof
-- unsafe_clear
+There are some `open` methods which only support the `open() do io ... end` conventions. This module provides a trick to enable keeping `io` for later usage. This is convenient for interactive programming.
 
 ## Examples
 
@@ -21,6 +18,13 @@ write(io, "Hello");
 println(String(read(io)));
 
 close(io)  # you can close io manually
-wrapper = nothing; # or leave it to GC
+io = nothing; # or leave it to GC
 unsafe_clear() # or you can clear all ios opened by opentrick manually
 ```
+
+## Supported interfaces
+
+- opentrick,
+- close, read, read!, readavailable, readline, write, isopen, eof
+- rawio, blockingtask
+- unsafe_clear

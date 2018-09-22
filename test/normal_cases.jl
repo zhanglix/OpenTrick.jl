@@ -2,8 +2,12 @@ using Test
 using OpenTrick
 @testset "open read succeed" begin
     io = opentrick(open, "sometext.txt", "r")
-    @test "hello world!" == String(readline(io))
     @test !eof(io)
+    @test "hello world!" == String(readline(io))
+    @test "你好！\n" == String(read(io, 10))
+    @test 0x0a434241 == read(io, UInt32)
+    @test "Remains.\n" == String(readavailable(io))
+    @test eof(io)
     @test length(OpenTrick.tasks_pending) == 1
     @debug "call close"
     close(io)

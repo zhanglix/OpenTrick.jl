@@ -16,13 +16,16 @@ mutable struct IOWrapper{T <: IO}
 end
 
 """
-    opentrick(openfn[, args..., [kwargs...]])
+    opentrick(openfn[, args... [; <keyword arguments>]])
 
-Call `openfn` with (handlefn, args... ,kwargs ...) as arguments, return a instance of `IOWrapper`
+Call `openfn` with `(handlefn, args... ,kwargs ...)` as arguments,
+return an `IOWrapper` instance. (NB:`handlefn` is provided by `opentrick`.)
 
-`openfn` need to take a handlefn as its first argument, like the Base.open().
-And the `handlefn` is expected to take an instance of `IO` as
-only argument.
+# Arguments
+- `openfn::Function` function actually called to obtain a `IO` instance.
+  `openfn` must take a `Function(::IO)` instance as its first argument
+- `args` optional arguments that will be passed to `openfn`
+- `kwargs` optional keyword arguments that will be passed to `openfn`
 
 # Examples
 ```jldoctest
@@ -50,6 +53,11 @@ function opentrick(open::Function, args...; kwargs...)
     end
 end
 
+"""
+    close(io)
+
+Close `io` and unblock the corresponding blocking task.
+"""
 function Base.close(w::IOWrapper)
     try
         close(rawio(w))
@@ -61,12 +69,27 @@ function Base.close(w::IOWrapper)
     end
 end
 
-for fname in (:read, :read!, :readavailable, :readline, :write, :isopen, :eof, :seek, :skip)
+for fname in (
+    :read, :read!, :readbytes!, :unsafe_read, :readavailable,
+    :readline, :readlines, :eachline, :readchomp, :readuntil, :bytesavailable,
+    :write, :unsafe_write, :truncate, :flush,
+    :print, :println, :printstyled, :showerror,
+    :seek, :seekstart, :seekend, :skip, :skipchars, :position,
+    :mark, :unmark, :reset, :ismarked,
+    :isreadonly, :iswritable, :isreadable, :isopen, :eof,
+    :countlines, :displaysize)
     eval(quote
+        @assert isa(Base.$fname, Function)
         Base.$fname(w::IOWrapper, args...; kwargs...) = $fname(rawio(w), args...; kwargs...)
     end)
 end
 
+"""
+    unsafe_clear()
+
+Unblock all blocking tasks. All `io`s returned by `opentrick` will
+be closed as a consequence.
+"""
 function unsafe_clear()
     for (cond, task) in tasks_pending
         notify(cond, InterruptException(), error=true)
@@ -74,17 +97,28 @@ function unsafe_clear()
     end
 end
 
+"""
+    rawio(io)
+
+Return the actual `io` instance
+"""
 rawio(w::IOWrapper) = w.io
+
+"""
+    blockingtask(io)
+
+Return the task blocking which prevents the `handlefn` passed to `openfn` from returning
+"""
 blockingtask(w::IOWrapper) = tasks_pending[w.cond]
 
 """
 call blockreturn in other tasks like in @async block
 """
 function notifyreturn(c, x)
-    nof = IOWrapper(x, c)
-    @debug "notifing caller..." nof
-    notify(c, nof, all=false) # caller ought to be waiting for it
-    nof = nothing # no longer keep reference to
+    io = IOWrapper(x, c)
+    @debug "notifing caller..." io
+    notify(c, io, all=false) # caller ought to be waiting for it
+    io = nothing # no longer keep reference to
     wait(c)
     @debug "notifyreturn finished"
 end

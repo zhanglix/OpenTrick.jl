@@ -54,7 +54,7 @@ function opentrick(open::Function, args...; kwargs...)
 end
 
 """
-    close(io)
+    close(io; kwargs...)
 
 Close `io` and unblock the corresponding blocking task.
 """

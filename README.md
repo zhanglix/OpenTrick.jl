@@ -14,7 +14,7 @@ using WebSockets as an example.
 using OpenTrick
 using WebSockets
 
-io = opentrick(WebSockets.open, "ws//echo.websocket.org");
+io = opentrick(WebSockets.open, "ws://echo.websocket.org");
 write(io, "Hello");
 println(String(read(io)));
 

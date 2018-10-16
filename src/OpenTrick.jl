@@ -54,13 +54,13 @@ function opentrick(open::Function, args...; kwargs...)
 end
 
 """
-    close(io)
+    close(io; kwargs...)
 
 Close `io` and unblock the corresponding blocking task.
 """
-function Base.close(w::IOWrapper)
+function Base.close(w::IOWrapper; kwargs...)
     try
-        close(rawio(w))
+        close(rawio(w); kwargs...)
     catch e
         rethrow(e)
     finally
